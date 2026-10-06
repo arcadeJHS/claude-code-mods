@@ -35,11 +35,14 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
 - [Requirements](#requirements)
 - [Install](#install)
 - [How to use it](#how-to-use-it)
+- [Examples](#examples)
 - [Commands](#commands)
 - [How bookmarks are kept](#how-bookmarks-are-kept)
+- [Privacy](#privacy)
 - [Troubleshooting](#troubleshooting)
 - [Known limitations](#known-limitations)
 - [Development](#development)
+- [Support](#support)
 - [License](#license)
 
 ---
@@ -150,6 +153,22 @@ Click **Go to** on any bookmark. The conversation scrolls until that message is 
 
 ---
 
+## Examples
+
+**1. Find a decision again.**
+Early in a session you ask *"how should we cache the API responses?"* and Claude compares an in-memory LRU with a Redis layer. You pick one and keep working. Before moving on, hover Claude's reply and click **🔖**. Two hours and fifty messages later you want to re-read the trade-offs: click **Go to** on the `claude` bookmark, and the transcript scrolls straight back to that reply.
+
+**2. Keep a command you'll need later.**
+Claude gives you the exact command to run the database migration, but you won't run it until the end of the day. Select just the command with the mouse and type `/bookmark migration command`. The pane now shows *migration command · selection* with the command underneath, ready to copy, and **Go to** takes you to the reply it came from.
+
+**3. Turn a long review into a to-do list.**
+You ask Claude to review a pull request and get back a dozen points. Select each point you want to act on and click **+ Bookmark selection**. Each one becomes an entry in the pane. Work through them, using **Go to** for the full context, and **Delete** each one once it's fixed. When the pane is empty, you're done.
+
+**4. Get back to a specific edit.**
+Claude edited several files in one go, and later you want to look at the change to `src/api/cache.ts` again. Hover the `Edit(src/api/cache.ts)` row and click **🔖**. The bookmark is titled `Edit(api/cache.ts)`, and **Go to** brings that edit's diff back on screen.
+
+---
+
 ## Commands
 
 | Command | What it does |
@@ -172,7 +191,32 @@ Both commands work immediately, even while Claude is in the middle of a turn.
   - up to **2,000 characters** of text per bookmark,
   - the **50 most recent sessions** with bookmarks are kept; older ones are dropped.
 
-Nothing is sent anywhere, and the model never reads your bookmarks. They only change what you see on screen.
+Nothing is sent anywhere, and the model never reads your bookmarks. They only change what you see on screen. [Privacy](#privacy) has the details.
+
+---
+
+## Privacy
+
+Transcript Bookmarks works entirely on your computer.
+
+**What it reads**
+- **A message's text, only when you click its 🔖.** That text becomes the bookmark.
+- **The text you selected, only when you bookmark a selection** (with **+ Bookmark selection** or `/bookmark`).
+- **Who wrote each message on screen**, so a selection can be labelled: `you`, `claude`, or a tool with its file or command, such as `Edit(api/cache.ts)`. It keeps only these short labels, for the last 500 messages drawn, in memory. They're never saved and are gone when you quit Claude Code.
+
+It doesn't read your files, your project, your other conversations, or any message you haven't bookmarked.
+
+**What it stores**
+- For each bookmark: the text, its label, the time, and which message it points to.
+- Where: Claude Code's local storage for this plugin, on your machine, filed by session.
+- How long: until you click **Delete** or **Clear all**. Bookmarks are kept for the 50 most recent sessions that have any, and older ones are deleted automatically.
+
+**What it sends**
+- **Nothing.** The plugin makes no network requests, runs no MCP servers, runs no shell commands and collects no telemetry. Nothing goes to Anthropic, to the author, or to anyone else.
+- The model never sees your bookmarks.
+- The only thing that leaves the plugin is a copy of a bookmark's text to **your own clipboard**, and only when **Go to** can't scroll to the message. A note on screen tells you when it happens.
+
+The source is all in [`hooks/register.tsx`](hooks/register.tsx), unminified, if you want to check.
 
 ---
 
@@ -238,6 +282,13 @@ tsc -p ./transcript-bookmarks                   # type-check (after Claude Code 
 ```
 
 `.claude-plugin/types/` is written by Claude Code each time it loads the mod (it holds the API's type declarations for your editor). It is git-ignored.
+
+---
+
+## Support
+
+- **Bugs, questions and ideas:** open an issue at [github.com/arcadeJHS/claude-code-mods/issues](https://github.com/arcadeJHS/claude-code-mods/issues). It helps to include your Claude Code version (`claude --version`), whether you run fullscreen mode, and the steps that show the problem.
+- **Security concerns:** please report them privately through [GitHub's security advisories](https://github.com/arcadeJHS/claude-code-mods/security/advisories/new) rather than in a public issue.
 
 ---
 

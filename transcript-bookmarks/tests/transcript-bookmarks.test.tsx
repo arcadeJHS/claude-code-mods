@@ -152,6 +152,42 @@ test('/bookmark saves the selected text under its label', async ($, on) => {
   expect(await pane.find({ text: /the part that matters/ })).toBeDefined()
 })
 
+test('a selection in a drawn message takes that message\'s title', async ($, on) => {
+  world(on)
+  on('ui.selection', () => ({ value: { text: 'one line of it', requestId: 'tool-1' } }))
+  on('ui.render', { component: 'ToolUse' }, ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>{e.props.tool}</Text>
+  })
+  await start($)
+
+  await $.ui.mount({
+    plugin: 'transcript-bookmarks',
+    surface: 'terminal',
+    component: 'ToolUse',
+    requestId: 'tool-1',
+    props: {
+      tool_use_id: 'tool-1',
+      tool: 'Edit',
+      input: { file_path: '/repo/src/api/cache.ts' },
+      isRunning: false,
+      isErrored: false,
+      isInterrupted: false,
+    },
+    viewport: FULLSCREEN,
+  })
+  await $.command.run({
+    command: 'bookmark',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 160 },
+  })
+
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ text: /Edit\(api\/cache\.ts\) · selection/ })).toBeDefined()
+  expect(await pane.find({ text: /one line of it/ })).toBeDefined()
+})
+
 test('/bookmark with nothing selected says what to do', async ($, on) => {
   const seen = world(on)
   on('ui.selection', () => ({ value: undefined }))

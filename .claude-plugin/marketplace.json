@@ -9,7 +9,7 @@
       "name": "transcript-bookmarks",
       "source": "./transcript-bookmarks",
       "description": "Bookmark transcript messages or selected text and jump back to them from a side pane",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ],
   "renames": {

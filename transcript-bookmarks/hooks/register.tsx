@@ -17,7 +17,7 @@ const STORE_INDEX = 'bookmarks-index'
 const MAX_BOOKMARKS = 200
 const MAX_SESSIONS = 50
 const MAX_TEXT = 2000
-const MAX_SEEN = 500
+const MAX_TITLES = 500
 const PREVIEW_LINES = 3
 
 const list = atom({ plugin: 'transcript-bookmarks', key: 'list' } as const, [])
@@ -26,19 +26,21 @@ const marked = atom({ plugin: 'transcript-bookmarks', key: 'marked' } as const, 
 
 type $ = EngineInterface
 type MessageKind = Exclude<BookmarkKind, 'selection'>
-type Seen = { kind: MessageKind; title: string; text: string }
+type RowTitle = { kind: MessageKind; title: string }
+type Row = RowTitle & { text: string }
 type NewBookmark = Omit<Bookmark, 'id' | 'createdAt'>
 
-// What each drawn transcript row holds, so a selection (which only names its
-// row) can be titled. A cache: a reload redraws the rows and refills it.
-const seen = new Map<string, Seen>()
+// Who wrote each drawn transcript row, so a selection (which only names its
+// row) can be titled. Titles only: a row's text is kept just when its 🔖 is
+// pressed. A cache: a reload redraws the rows and refills it.
+const titles = new Map<string, RowTitle>()
 
-function remember(requestId: string, info: Seen) {
-  seen.delete(requestId)
-  seen.set(requestId, info)
-  if (seen.size > MAX_SEEN) {
-    const oldest = seen.keys().next().value
-    if (oldest !== undefined) seen.delete(oldest)
+function remember(requestId: string, { kind, title }: RowTitle) {
+  titles.delete(requestId)
+  titles.set(requestId, { kind, title })
+  if (titles.size > MAX_TITLES) {
+    const oldest = titles.keys().next().value
+    if (oldest !== undefined) titles.delete(oldest)
   }
 }
 
@@ -166,7 +168,7 @@ async function clearAll($: $) {
   await persist($)
 }
 
-async function markMessage($: $, requestId: string) {
+async function markMessage($: $, requestId: string, row: Row) {
   await ensureLoaded($)
   const already = (await read($, list)).find(b => b.requestId === requestId && b.kind !== 'selection')
   if (already !== undefined) {
@@ -174,13 +176,7 @@ async function markMessage($: $, requestId: string) {
     $.ui.toast('That message is already bookmarked')
     return
   }
-  const info = seen.get(requestId)
-  await addBookmark($, {
-    requestId,
-    kind: info?.kind ?? 'assistant',
-    title: info?.title ?? 'message',
-    excerpt: info?.text ?? '',
-  })
+  await addBookmark($, { requestId, kind: row.kind, title: row.title, excerpt: row.text })
 }
 
 // Answers with why nothing was bookmarked, or undefined once it was.
@@ -189,7 +185,7 @@ async function bookmarkSelection($: $, label: string): Promise<string | undefine
   if (selection === undefined || selection.text.trim() === '') {
     return 'Nothing is selected: select text in the transcript with the mouse first (fullscreen mode).'
   }
-  const info = selection.requestId === undefined ? undefined : seen.get(selection.requestId)
+  const info = selection.requestId === undefined ? undefined : titles.get(selection.requestId)
   await addBookmark($, {
     requestId: selection.requestId,
     kind: 'selection',
@@ -218,19 +214,21 @@ async function jump($: $, bookmark: Bookmark, surface: RenderSurface) {
   )
 }
 
-// The engine's own row, with a 🔖 at its top right that shows on hover and
-// stays as ★ once the row is bookmarked.
+// The engine's own drawing of a row, with a 🔖 at its top right that shows on
+// hover and stays as ★ once the row is bookmarked. The 🔖 carries the row's
+// text, so nothing else needs to remember it.
 function markable(
   $: $,
   ui: Pick<ElementTable, 'Box' | 'Button'>,
   requestId: string,
-  row: RenderElement,
+  drawing: RenderElement,
+  row: Row,
   isMarked: boolean,
 ) {
   const { Box, Button } = ui
   return (
     <Box key={`bm:${requestId}`} flexDirection="column">
-      {row}
+      {drawing}
       <Box
         position="absolute"
         top={0}
@@ -242,7 +240,7 @@ function markable(
           dimColor
           key={`mark:${requestId}`}
           label={isMarked ? '★' : '🔖'}
-          onPress={() => markMessage($, requestId)}
+          onPress={() => markMessage($, requestId, row)}
         />
       </Box>
     </Box>
@@ -302,29 +300,31 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
-    const row = await next(e)
-    remember(e.requestId, { kind: 'assistant', title: 'claude', text: e.props.text })
-    if (!showsMarks(e.surface, e.viewport)) return row
+    const drawing = await next(e)
+    const row: Row = { kind: 'assistant', title: 'claude', text: e.props.text }
+    remember(e.requestId, row)
+    if (!showsMarks(e.surface, e.viewport)) return drawing
 
-    return markable($, $.ui.resolve(e), e.requestId, row, await read($, memberOf(marked, e)))
+    return markable($, $.ui.resolve(e), e.requestId, drawing, row, await read($, memberOf(marked, e)))
   })
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
-    const row = await next(e)
+    const drawing = await next(e)
     const title = e.props.from?.name ?? (e.props.origin.kind === 'task-notification' ? 'task' : 'you')
-    remember(e.requestId, { kind: 'user', title, text: e.props.text })
-    if (!showsMarks(e.surface, e.viewport)) return row
+    const row: Row = { kind: 'user', title, text: e.props.text }
+    remember(e.requestId, row)
+    if (!showsMarks(e.surface, e.viewport)) return drawing
 
-    return markable($, $.ui.resolve(e), e.requestId, row, await read($, memberOf(marked, e)))
+    return markable($, $.ui.resolve(e), e.requestId, drawing, row, await read($, memberOf(marked, e)))
   })
 
   on('ui.render', { component: 'ToolUse' }, async ($, e, next) => {
-    const row = await next(e)
-    const { title, text } = toolTitle(e.props.tool, e.props.input)
-    remember(e.requestId, { kind: 'tool', title, text })
-    if (!showsMarks(e.surface, e.viewport)) return row
+    const drawing = await next(e)
+    const row: Row = { kind: 'tool', ...toolTitle(e.props.tool, e.props.input) }
+    remember(e.requestId, row)
+    if (!showsMarks(e.surface, e.viewport)) return drawing
 
-    return markable($, $.ui.resolve(e), e.requestId, row, await read($, memberOf(marked, e)))
+    return markable($, $.ui.resolve(e), e.requestId, drawing, row, await read($, memberOf(marked, e)))
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

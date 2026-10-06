@@ -1,6 +1,7 @@
 {
   "name": "transcript-bookmarks",
-  "version": "0.1.0",
+  "displayName": "Transcript Bookmarks",
+  "version": "0.2.0",
   "description": "Bookmark transcript messages or selected text and jump back to them from a side pane",
   "author": {
     "name": "Matteo Piazza"
