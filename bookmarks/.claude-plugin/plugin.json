@@ -1,0 +1,19 @@
+{
+  "name": "bookmarks",
+  "version": "0.1.0",
+  "description": "Bookmark transcript messages or selected text and jump back to them from a side pane",
+  "author": {
+    "name": "Matteo Piazza"
+  },
+  "homepage": "https://github.com/arcadeJHS/claude-code-mods/tree/main/bookmarks",
+  "repository": "https://github.com/arcadeJHS/claude-code-mods",
+  "license": "WTFPL",
+  "keywords": [
+    "bookmarks",
+    "transcript",
+    "navigation",
+    "pane",
+    "mod"
+  ],
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "matteo-mods",
+  "description": "Matteo Piazza's mods for Claude Code: live panes and tools inside the terminal",
+  "owner": {
+    "name": "Matteo Piazza"
+  },
+  "plugins": [
+    {
+      "name": "bookmarks",
+      "source": "./bookmarks",
+      "description": "Bookmark transcript messages or selected text and jump back to them from a side pane",
+      "version": "0.1.0"
+    }
+  ]
+}
