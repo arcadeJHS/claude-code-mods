@@ -12,7 +12,7 @@ export type Bookmark = {
 
 declare module 'claude-code' {
   interface PluginState {
-    bookmarks: {
+    'transcript-bookmarks': {
       list: Bookmark[]
       /** The session id the list was loaded for, so a hot reload keeps it and a /clear drops it. */
       loadedFor: string

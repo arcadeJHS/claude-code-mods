@@ -7,7 +7,7 @@ const SESSION = 'session-1'
 const FULLSCREEN = { columns: 160, rows: 50, isFullscreen: true }
 
 const PANE = {
-  plugin: 'bookmarks',
+  plugin: 'transcript-bookmarks',
   component: 'Pane',
   requestId: 'bookmarks',
   props: {
@@ -98,7 +98,7 @@ test('the hover mark bookmarks a message once', async ($, on) => {
 
   for (const surface of SURFACES) {
     const row = await $.ui.mount({
-      plugin: 'bookmarks',
+      plugin: 'transcript-bookmarks',
       surface,
       component: 'AssistantMessage',
       requestId: `msg-${surface}`,
@@ -124,7 +124,7 @@ test('no mark on the terminal main screen, where nothing hovers', async ($, on) 
   world(on)
   await start($)
   const row = await $.ui.mount({
-    plugin: 'bookmarks',
+    plugin: 'transcript-bookmarks',
     surface: 'terminal',
     component: 'AssistantMessage',
     requestId: 'msg-main',

@@ -4,7 +4,7 @@ Small mods that add features to the [Claude Code](https://claude.com/claude-code
 
 | Mod | What it does |
 |---|---|
-| [**bookmarks**](bookmarks/) | Bookmark any message (or just the text you select) in a long conversation, and jump straight back to it from a side pane. |
+| [**transcript-bookmarks**](transcript-bookmarks/) | Bookmark any message (or just the text you select) in a long conversation, and jump straight back to it from a side pane. |
 
 ## Install
 
@@ -14,7 +14,7 @@ This repository is a Claude Code plugin marketplace. To install a mod, type this
 /plugin install <mod> --marketplace arcadeJHS/claude-code-mods
 ```
 
-For example: `/plugin install bookmarks --marketplace arcadeJHS/claude-code-mods`. Answer `y` to add the marketplace, then press Enter for the user scope.
+For example: `/plugin install transcript-bookmarks --marketplace arcadeJHS/claude-code-mods`. Answer `y` to add the marketplace, then press Enter for the user scope.
 
 Each mod's own README covers its requirements and how to use it.
 

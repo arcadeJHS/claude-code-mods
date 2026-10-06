@@ -1,4 +1,4 @@
-# 🔖 Bookmarks for Claude Code
+# 🔖 Transcript Bookmarks for Claude Code
 
 **Bookmark any part of a Claude Code conversation and jump straight back to it.**
 
@@ -74,10 +74,10 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
 
 ### From GitHub (recommended)
 
-This mod lives in [arcadeJHS/claude-code-mods](https://github.com/arcadeJHS/claude-code-mods). That repository is a plugin *marketplace*: it has a `.claude-plugin/marketplace.json` at its root that lists `bookmarks`. In a Claude Code session, type:
+This mod lives in [arcadeJHS/claude-code-mods](https://github.com/arcadeJHS/claude-code-mods). That repository is a plugin *marketplace*: it has a `.claude-plugin/marketplace.json` at its root that lists `transcript-bookmarks`. In a Claude Code session, type:
 
 ```
-/plugin install bookmarks --marketplace arcadeJHS/claude-code-mods
+/plugin install transcript-bookmarks --marketplace arcadeJHS/claude-code-mods
 ```
 
 Then:
@@ -93,7 +93,7 @@ Clone the repository, then add it as a marketplace and install from it:
 ```bash
 git clone https://github.com/arcadeJHS/claude-code-mods.git
 claude plugin marketplace add ./claude-code-mods   # the folder holding .claude-plugin/marketplace.json
-claude plugin install bookmarks@matteo-mods
+claude plugin install transcript-bookmarks@matteo-mods
 ```
 
 A plugin installed this way runs **from that folder**, not from a copy. After you edit its files, run `/reload-plugins` in your session to load the changes.
@@ -101,7 +101,7 @@ A plugin installed this way runs **from that folder**, not from a copy. After yo
 ### Just try it, without installing
 
 ```bash
-claude --plugin-dir ./claude-code-mods/bookmarks
+claude --plugin-dir ./claude-code-mods/transcript-bookmarks
 ```
 
 This loads it for that session only, and reloads it whenever you save a file in the folder.
@@ -191,7 +191,7 @@ The message is no longer part of the drawn conversation, for example after `/com
 The window is narrower than about 110 columns. Widen it and the pane docks beside the conversation.
 
 **Nothing happens at all.**
-Check that the mod is loaded with `claude plugin list`, or start with `claude --debug`. If a hook fails, Claude Code writes a line naming the `bookmarks` plugin and the reason.
+Check that the mod is loaded with `claude plugin list`, or start with `claude --debug`. If a hook fails, Claude Code writes a line naming the `transcript-bookmarks` plugin and the reason.
 
 ---
 
@@ -207,7 +207,7 @@ Check that the mod is loaded with `claude plugin list`, or start with `claude --
 ## Development
 
 ```
-bookmarks/
+transcript-bookmarks/
 ├── .claude-plugin/
 │   └── plugin.json          # name, version, description, type contract
 ├── hooks/
@@ -216,7 +216,7 @@ bookmarks/
 ├── types/
 │   └── index.d.ts           # the shape of the state the mod keeps
 ├── tests/
-│   └── bookmarks.test.tsx   # runs against Claude Code's own engine
+│   └── transcript-bookmarks.test.tsx   # runs against Claude Code's own engine
 ├── tsconfig.json            # extends the types Claude Code writes on load
 └── README.md
 ```
@@ -231,10 +231,10 @@ bookmarks/
 **Check, test, run**
 
 ```bash
-claude plugin validate ./bookmarks            # manifest + hooks, the way Claude Code reads them
-claude plugin test ./bookmarks                # the tests in tests/
-claude --plugin-dir ./bookmarks               # a live session that reloads on save
-tsc -p ./bookmarks                            # type-check (after Claude Code has loaded the mod once)
+claude plugin validate ./transcript-bookmarks   # manifest + hooks, the way Claude Code reads them
+claude plugin test ./transcript-bookmarks       # the tests in tests/
+claude --plugin-dir ./transcript-bookmarks      # a live session that reloads on save
+tsc -p ./transcript-bookmarks                   # type-check (after Claude Code has loaded the mod once)
 ```
 
 `.claude-plugin/types/` is written by Claude Code each time it loads the mod (it holds the API's type declarations for your editor). It is git-ignored.

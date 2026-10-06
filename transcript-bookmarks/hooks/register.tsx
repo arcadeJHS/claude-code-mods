@@ -20,9 +20,9 @@ const MAX_TEXT = 2000
 const MAX_SEEN = 500
 const PREVIEW_LINES = 3
 
-const list = atom({ plugin: 'bookmarks', key: 'list' } as const, [])
-const loadedFor = atom({ plugin: 'bookmarks', key: 'loadedFor' } as const, '')
-const marked = atom({ plugin: 'bookmarks', key: 'marked' } as const, false)
+const list = atom({ plugin: 'transcript-bookmarks', key: 'list' } as const, [])
+const loadedFor = atom({ plugin: 'transcript-bookmarks', key: 'loadedFor' } as const, '')
+const marked = atom({ plugin: 'transcript-bookmarks', key: 'marked' } as const, false)
 
 type $ = EngineInterface
 type MessageKind = Exclude<BookmarkKind, 'selection'>
