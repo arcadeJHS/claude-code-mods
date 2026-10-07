@@ -1,4 +1,4 @@
-# 🔖 Transcript Bookmarks for Claude Code
+# 📌 Transcript Bookmarks for Claude Code
 
 **Bookmark any part of a Claude Code conversation and jump straight back to it.**
 
