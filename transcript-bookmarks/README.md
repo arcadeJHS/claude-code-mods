@@ -63,6 +63,7 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
 
 ## Requirements
 
+- **The Claude Code terminal.** This mod is built and tested only for Claude Code running in a terminal. The directory can also offer it in the desktop app's Code tab and in the IDE extensions (VS Code, JetBrains), but it hasn't been tested there. Some parts may work there and others may not, such as selecting text or jumping to a message.
 - **Claude Code with plugin function hooks.** Tested on **2.1.291**. The hooks API is in early access and may change between releases.
 - **Fullscreen terminal mode.** Hover marks, mouse selection and scroll-to-message all need it, because the classic "main screen" mode has no mouse tracking and leaves scrolling to your terminal. Turn it on in either of these ways:
   - add `"tui": "fullscreen"` to `~/.claude/settings.json`, or
@@ -241,7 +242,7 @@ Check that the mod is loaded with `claude plugin list`, or start with `claude --
 
 ## Known limitations
 
-- **Fullscreen only** for hover, selection and jumping. In main-screen mode the mod stays out of the way and draws nothing on messages.
+- **Terminal only, in fullscreen mode.** It's tested only in the Claude Code terminal; see [Requirements](#requirements) for the desktop app and IDE extensions. Hover, selection and jumping need fullscreen mode. On the main screen the mod stays out of the way and draws nothing on messages.
 - **Jumping needs the message to still be in the conversation view.** After a `/compact`, older messages are summarised, so their bookmarks can no longer jump (you get the text on the clipboard instead).
 - **Grouped tool rows.** When several reads or searches are folded into one group row, the group has no 📌 of its own. Bookmark the reply next to it, or select the text.
 - **Early-access API.** Plugin function hooks are new in Claude Code and may change in future releases.
