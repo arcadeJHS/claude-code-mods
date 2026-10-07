@@ -18,32 +18,42 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
  │ ⏺ Two options: an in-memory LRU, or…        ★   │ │ Two options: an in-memory LRU, or │
  │                                                 │ │ a Redis layer in front of…        │
  │ ⏺ Edit(src/api/cache.ts)                    📌  │ │ [ Go to ] [ Delete ]              │
- │   ⎿ Added 24 lines                              │ │                                   │
+ │   └ Added 24 lines                              │ │                                   │
  │                                                 │ │ auth idea · selection · 15:07     │
  │                                                 │ │ refresh the token 60s before it   │
  │                                                 │ │ expires, not after the 401        │
  │                                                 │ │ [ Go to ] [ Delete ]              │
  └─────────────────────────────────────────────────┘ └───────────────────────────────────┘
-        📌 appears when you hover a message · ★ marks the ones already bookmarked
+  📌 appears when you hover a message · ★ marks the ones already bookmarked
 ```
 
 ---
 
 ## Contents
 
-- [What you can do](#what-you-can-do)
-- [Requirements](#requirements)
-- [Install](#install)
-- [How to use it](#how-to-use-it)
-- [Examples](#examples)
-- [Commands](#commands)
-- [How bookmarks are kept](#how-bookmarks-are-kept)
-- [Privacy](#privacy)
-- [Troubleshooting](#troubleshooting)
-- [Known limitations](#known-limitations)
-- [Development](#development)
-- [Support](#support)
-- [License](#license)
+- [📌 Transcript Bookmarks for Claude Code](#-transcript-bookmarks-for-claude-code)
+  - [Contents](#contents)
+  - [What you can do](#what-you-can-do)
+  - [Requirements](#requirements)
+  - [Install](#install)
+    - [From GitHub (recommended)](#from-github-recommended)
+    - [From a local folder](#from-a-local-folder)
+    - [Just try it, without installing](#just-try-it-without-installing)
+  - [How to use it](#how-to-use-it)
+    - [1. Bookmark a message](#1-bookmark-a-message)
+    - [2. Bookmark a selection](#2-bookmark-a-selection)
+    - [3. Jump back](#3-jump-back)
+    - [4. Clean up](#4-clean-up)
+    - [Opening and closing the pane](#opening-and-closing-the-pane)
+  - [Examples](#examples)
+  - [Commands](#commands)
+  - [How bookmarks are kept](#how-bookmarks-are-kept)
+  - [Privacy](#privacy)
+  - [Troubleshooting](#troubleshooting)
+  - [Known limitations](#known-limitations)
+  - [Development](#development)
+  - [Support](#support)
+  - [License](#license)
 
 ---
 
