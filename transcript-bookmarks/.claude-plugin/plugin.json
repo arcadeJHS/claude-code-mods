@@ -9,6 +9,7 @@
   "homepage": "https://github.com/arcadeJHS/claude-code-mods/tree/main/transcript-bookmarks",
   "repository": "https://github.com/arcadeJHS/claude-code-mods",
   "license": "WTFPL",
+  "icon": "./icon.png",
   "keywords": [
     "bookmarks",
     "transcript",
