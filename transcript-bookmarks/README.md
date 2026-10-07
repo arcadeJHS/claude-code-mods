@@ -87,7 +87,7 @@ Then:
 1. answer **`y`** when asked to add the marketplace,
 2. press **Enter** to pick the **user** scope (the mod is then active in every session).
 
-You should see `Installed bookmarks. Plugin is now active.` and can start bookmarking right away.
+You should see `✓ Installed transcript-bookmarks. Plugin is now active.` and can start bookmarking right away.
 
 ### From a local folder
 

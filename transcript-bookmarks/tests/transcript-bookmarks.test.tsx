@@ -25,11 +25,12 @@ const saved = [
   { id: 'b', requestId: 'msg-b', kind: 'user', title: 'you', excerpt: 'Second prompt', createdAt: 0 },
 ]
 
-// The engine beneath the plugin: this session's id, its saved bookmarks, and
-// a record of the toasts, panes and copies the plugin asks for.
+// The engine beneath the plugin: this session's id (a test moves it, as a
+// /clear or /resume does), its saved bookmarks, and a record of the toasts,
+// panes and copies the plugin asks for.
 function world(on: On, entries: Record<string, unknown> = {}) {
   const store = new Map<string, unknown>(Object.entries(entries))
-  const seen = { store, toasts: [] as string[], opened: [] as string[], copied: [] as string[] }
+  const seen = { session: SESSION, store, toasts: [] as string[], opened: [] as string[], copied: [] as string[] }
   on('store.get', ($, e) => ({ value: store.get(e.key) }))
   on('store.set', ($, e) => {
     store.set(e.key, e.value)
@@ -46,7 +47,8 @@ function world(on: On, entries: Record<string, unknown> = {}) {
     const { Text } = $.ui.resolve(e)
     return <Text>{e.props.text}</Text>
   })
-  on('session.id', () => ({ value: SESSION }))
+  on('session.id', () => ({ value: seen.session }))
+  on('session.end', ($, e) => ({ sessionId: e.sessionId }))
   on('command.register', ($, e) => ({ value: { command: e.name } }))
   on('ui.toast', ($, e) => {
     seen.toasts.push(e.text)
@@ -227,4 +229,161 @@ test('a selection across several messages is kept, without a place to jump', asy
   await pane.press({ key: `jump:${id}` })
   expect(seen.copied).toEqual([])
   expect(seen.toasts.some(t => t.includes('no single place to jump to'))).toBe(true)
+})
+
+test('/bookmark outside fullscreen says it needs fullscreen', async ($, on) => {
+  const seen = world(on)
+  on('ui.selection', () => ({ value: { text: 'selected anyway', requestId: 'msg-sel' } }))
+  await start($)
+
+  const ran = await $.command.run({
+    command: 'bookmark',
+    args: 'a label',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 120 },
+  })
+  expect(ran.text).toMatch(/needs the fullscreen terminal/)
+  expect(stored(seen)).toBeUndefined()
+})
+
+test('/bookmarks opens the pane, on the main screen too', async ($, on) => {
+  const seen = world(on)
+  await start($)
+  expect(seen.opened).toEqual([])
+
+  const ran = await $.command.run({
+    command: 'bookmarks',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 120 },
+  })
+  expect(ran.text).toBeUndefined()
+  expect(seen.opened).toEqual(['bookmarks'])
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ text: /No bookmarks yet/ })).toBeDefined()
+})
+
+test('stops at 200 bookmarks until one is deleted', async ($, on) => {
+  const full = Array.from({ length: 200 }, (_, i) => ({ ...saved[0], id: `b${i}`, requestId: `msg-${i}` }))
+  const seen = world(on, { [`bookmarks:${SESSION}`]: full })
+  on('ui.selection', () => ({ value: { text: 'one too many', requestId: 'msg-sel' } }))
+  await start($)
+  const bookmark = () =>
+    $.command.run({
+      command: 'bookmark',
+      args: '',
+      origin: { kind: 'composer' },
+      presentation: { isFullscreen: true, columns: 160 },
+    })
+
+  await bookmark()
+  expect(seen.toasts).toContain('You have 200 bookmarks already: delete some first')
+  expect(stored(seen)?.length).toBe(200)
+  expect(stored(seen)?.some(b => b.excerpt === 'one too many')).toBe(false)
+
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'del:b0' })
+  await bookmark()
+  expect(stored(seen)?.length).toBe(200)
+  expect(stored(seen)?.[0]?.excerpt).toBe('one too many')
+})
+
+test('keeps up to 2,000 characters of a bookmark\'s text', async ($, on) => {
+  const seen = world(on)
+  on('ui.selection', () => ({ value: { text: 'x'.repeat(2500), requestId: 'msg-sel' } }))
+  await start($)
+
+  await $.command.run({
+    command: 'bookmark',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 160 },
+  })
+  const excerpt = stored(seen)?.[0]?.excerpt
+  expect(excerpt?.length).toBe(2000)
+  expect(excerpt?.endsWith('x…')).toBe(true)
+})
+
+test('keeps the 50 most recent sessions with bookmarks', async ($, on) => {
+  const older = Array.from({ length: 50 }, (_, i) => `old-${i}`)
+  const seen = world(on, {
+    'bookmarks-index': older,
+    ...Object.fromEntries(older.map(id => [`bookmarks:${id}`, saved])),
+  })
+  on('ui.selection', () => ({ value: { text: 'new here', requestId: 'msg-sel' } }))
+  await start($)
+  const bookmark = () =>
+    $.command.run({
+      command: 'bookmark',
+      args: '',
+      origin: { kind: 'composer' },
+      presentation: { isFullscreen: true, columns: 160 },
+    })
+
+  await bookmark()
+  expect(seen.store.get('bookmarks-index')).toEqual([...older.slice(1), SESSION])
+  expect(seen.store.has('bookmarks:old-0')).toBe(false)
+  expect(seen.store.has('bookmarks:old-1')).toBe(true)
+
+  // Saving this session again moves it to the end, and drops no one else.
+  await bookmark()
+  expect(seen.store.get('bookmarks-index')).toEqual([...older.slice(1), SESSION])
+  expect(seen.store.has('bookmarks:old-1')).toBe(true)
+  expect(stored(seen)?.length).toBe(2)
+})
+
+test('/clear empties the list and the old session keeps its bookmarks', async ($, on) => {
+  const seen = world(on, { [`bookmarks:${SESSION}`]: saved })
+  on('ui.selection', () => ({ value: { text: 'after the clear', requestId: 'msg-new' } }))
+  await start($)
+  const row = await $.ui.mount({
+    plugin: 'transcript-bookmarks',
+    surface: 'terminal',
+    component: 'AssistantMessage',
+    requestId: 'msg-a',
+    props: { text: 'First answer', isFirstOfReply: true },
+    viewport: FULLSCREEN,
+  })
+  expect((await row.find({ key: 'mark:msg-a' }))?.text).toBe('★')
+
+  seen.session = 'session-2'
+  await $.session.end({ reason: 'clear', sessionId: SESSION, resume: { id: SESSION } })
+  expect((await row.find({ key: 'mark:msg-a' }))?.text).toBe('🔖')
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ text: /No bookmarks yet/ })).toBeDefined()
+
+  await $.command.run({
+    command: 'bookmark',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 160 },
+  })
+  expect((seen.store.get('bookmarks:session-2') as unknown[] | undefined)?.length).toBe(1)
+  expect(stored(seen)?.map(b => b.id)).toEqual(['a', 'b'])
+})
+
+test('/resume swaps in the resumed session\'s bookmarks', async ($, on) => {
+  const seen = world(on, {
+    [`bookmarks:${SESSION}`]: saved,
+    'bookmarks:session-0': [{ ...saved[0], id: 'z', excerpt: 'From the earlier session' }],
+  })
+  await start($)
+
+  seen.session = 'session-0'
+  await $.session.end({ reason: 'resume', sessionId: SESSION, resume: { id: SESSION } })
+  const before = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await before.find({ text: /No bookmarks yet/ })).toBeDefined()
+  await before.unmount()
+
+  await $.command.run({
+    command: 'bookmarks',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 160 },
+  })
+
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ text: /From the earlier session/ })).toBeDefined()
+  expect(await pane.find({ text: /First answer/ })).toBeUndefined()
+  expect(stored(seen)?.map(b => b.id)).toEqual(['a', 'b'])
 })
