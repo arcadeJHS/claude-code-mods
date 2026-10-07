@@ -31,7 +31,7 @@ type Row = RowTitle & { text: string }
 type NewBookmark = Omit<Bookmark, 'id' | 'createdAt'>
 
 // Who wrote each drawn transcript row, so a selection (which only names its
-// row) can be titled. Titles only: a row's text is kept just when its 🔖 is
+// row) can be titled. Titles only: a row's text is kept just when its 📌 is
 // pressed. A cache: a reload redraws the rows and refills it.
 const titles = new Map<string, RowTitle>()
 
@@ -214,8 +214,8 @@ async function jump($: $, bookmark: Bookmark, surface: RenderSurface) {
   )
 }
 
-// The engine's own drawing of a row, with a 🔖 at its top right that shows on
-// hover and stays as ★ once the row is bookmarked. The 🔖 carries the row's
+// The engine's own drawing of a row, with a 📌 at its top right that shows on
+// hover and stays as ★ once the row is bookmarked. The 📌 carries the row's
 // text, so nothing else needs to remember it.
 function markable(
   $: $,
@@ -239,7 +239,7 @@ function markable(
           plain
           dimColor
           key={`mark:${requestId}`}
-          label={isMarked ? '★' : '🔖'}
+          label={isMarked ? '★' : '📌'}
           onPress={() => markMessage($, requestId, row)}
         />
       </Box>
@@ -350,7 +350,7 @@ export const register: Register = on => {
         {items.length === 0 && (
           <Box marginTop={1}>
             <Text dimColor>
-              No bookmarks yet. Hover a message and click 🔖, or select text with the mouse and
+              No bookmarks yet. Hover a message and click 📌, or select text with the mouse and
               press "+ Bookmark selection" (or type /bookmark).
             </Text>
           </Box>

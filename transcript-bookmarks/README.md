@@ -17,14 +17,14 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
  │                                                 │ │ claude · 14:32                    │
  │ ⏺ Two options: an in-memory LRU, or…        ★   │ │ Two options: an in-memory LRU, or │
  │                                                 │ │ a Redis layer in front of…        │
- │ ⏺ Edit(src/api/cache.ts)                    🔖  │ │ [ Go to ] [ Delete ]              │
+ │ ⏺ Edit(src/api/cache.ts)                    📌  │ │ [ Go to ] [ Delete ]              │
  │   ⎿ Added 24 lines                              │ │                                   │
  │                                                 │ │ auth idea · selection · 15:07     │
  │                                                 │ │ refresh the token 60s before it   │
  │                                                 │ │ expires, not after the 401        │
  │                                                 │ │ [ Go to ] [ Delete ]              │
  └─────────────────────────────────────────────────┘ └───────────────────────────────────┘
-        🔖 appears when you hover a message · ★ marks the ones already bookmarked
+        📌 appears when you hover a message · ★ marks the ones already bookmarked
 ```
 
 ---
@@ -51,7 +51,7 @@ You can keep as many bookmarks as you like. Each one has its own **Delete** butt
 
 | | |
 |---|---|
-| **Bookmark a whole message** | Hover any message (your prompt, Claude's reply, or a tool/edit row like `Edit(src/x.ts)`) and click the 🔖 that shows up at its top right. |
+| **Bookmark a whole message** | Hover any message (your prompt, Claude's reply, or a tool/edit row like `Edit(src/x.ts)`) and click the 📌 that shows up at its top right. |
 | **Bookmark just some text** | Select a few lines with the mouse, then click **+ Bookmark selection** in the pane, or type `/bookmark`. Only the text you selected is kept. |
 | **Give it a name** | `/bookmark auth idea` saves the selection under the label *auth idea*. |
 | **Jump back** | Click **Go to** on a bookmark and the conversation scrolls so that message sits at the top. |
@@ -115,7 +115,7 @@ This loads it for that session only, and reloads it whenever you save a file in 
 
 ### 1. Bookmark a message
 
-Move the mouse over any message in the conversation. A **🔖** appears at the right end of its first line. Click it.
+Move the mouse over any message in the conversation. A **📌** appears at the right end of its first line. Click it.
 
 - The **Bookmarks** pane opens, with the new bookmark at the top.
 - A short note confirms it: *Bookmarked: claude*.
@@ -156,7 +156,7 @@ Click **Go to** on any bookmark. The conversation scrolls until that message is 
 ## Examples
 
 **1. Find a decision again.**
-Early in a session you ask *"how should we cache the API responses?"* and Claude compares an in-memory LRU with a Redis layer. You pick one and keep working. Before moving on, hover Claude's reply and click **🔖**. Two hours and fifty messages later you want to re-read the trade-offs: click **Go to** on the `claude` bookmark, and the transcript scrolls straight back to that reply.
+Early in a session you ask *"how should we cache the API responses?"* and Claude compares an in-memory LRU with a Redis layer. You pick one and keep working. Before moving on, hover Claude's reply and click **📌**. Two hours and fifty messages later you want to re-read the trade-offs: click **Go to** on the `claude` bookmark, and the transcript scrolls straight back to that reply.
 
 **2. Keep a command you'll need later.**
 Claude gives you the exact command to run the database migration, but you won't run it until the end of the day. Select just the command with the mouse and type `/bookmark migration command`. The pane now shows *migration command · selection* with the command underneath, ready to copy, and **Go to** takes you to the reply it came from.
@@ -165,7 +165,7 @@ Claude gives you the exact command to run the database migration, but you won't 
 You ask Claude to review a pull request and get back a dozen points. Select each point you want to act on and click **+ Bookmark selection**. Each one becomes an entry in the pane. Work through them, using **Go to** for the full context, and **Delete** each one once it's fixed. When the pane is empty, you're done.
 
 **4. Get back to a specific edit.**
-Claude edited several files in one go, and later you want to look at the change to `src/api/cache.ts` again. Hover the `Edit(src/api/cache.ts)` row and click **🔖**. The bookmark is titled `Edit(api/cache.ts)`, and **Go to** brings that edit's diff back on screen.
+Claude edited several files in one go, and later you want to look at the change to `src/api/cache.ts` again. Hover the `Edit(src/api/cache.ts)` row and click **📌**. The bookmark is titled `Edit(api/cache.ts)`, and **Go to** brings that edit's diff back on screen.
 
 ---
 
@@ -200,7 +200,7 @@ Nothing is sent anywhere, and the model never reads your bookmarks. They only ch
 Transcript Bookmarks works entirely on your computer.
 
 **What it reads**
-- **A message's text, only when you click its 🔖.** That text becomes the bookmark.
+- **A message's text, only when you click its 📌.** That text becomes the bookmark.
 - **The text you selected, only when you bookmark a selection** (with **+ Bookmark selection** or `/bookmark`).
 - **Who wrote each message on screen**, so a selection can be labelled: `you`, `claude`, or a tool with its file or command, such as `Edit(api/cache.ts)`. It keeps only these short labels, for the last 500 messages drawn, in memory. They're never saved and are gone when you quit Claude Code.
 
@@ -222,7 +222,7 @@ The source is all in [`hooks/register.tsx`](hooks/register.tsx), unminified, if 
 
 ## Troubleshooting
 
-**I don't see the 🔖 when I hover a message.**
+**I don't see the 📌 when I hover a message.**
 You're probably on the main screen rather than fullscreen. See [Requirements](#requirements). Inside tmux, fullscreen is off by default.
 
 **`/bookmark` says "Nothing is selected".**
@@ -243,7 +243,7 @@ Check that the mod is loaded with `claude plugin list`, or start with `claude --
 
 - **Fullscreen only** for hover, selection and jumping. In main-screen mode the mod stays out of the way and draws nothing on messages.
 - **Jumping needs the message to still be in the conversation view.** After a `/compact`, older messages are summarised, so their bookmarks can no longer jump (you get the text on the clipboard instead).
-- **Grouped tool rows.** When several reads or searches are folded into one group row, the group has no 🔖 of its own. Bookmark the reply next to it, or select the text.
+- **Grouped tool rows.** When several reads or searches are folded into one group row, the group has no 📌 of its own. Bookmark the reply next to it, or select the text.
 - **Early-access API.** Plugin function hooks are new in Claude Code and may change in future releases.
 
 ---
