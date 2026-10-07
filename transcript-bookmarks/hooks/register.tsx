@@ -24,7 +24,6 @@ const list = atom({ plugin: 'transcript-bookmarks', key: 'list' } as const, [])
 const loadedFor = atom({ plugin: 'transcript-bookmarks', key: 'loadedFor' } as const, '')
 const marked = atom({ plugin: 'transcript-bookmarks', key: 'marked' } as const, false)
 
-type $ = EngineInterface
 type MessageKind = Exclude<BookmarkKind, 'selection'>
 type RowTitle = { kind: MessageKind; title: string }
 type Row = RowTitle & { text: string }
@@ -95,7 +94,7 @@ function showsMarks(surface: RenderSurface, viewport: RenderViewport | undefined
   return surface !== 'mobile'
 }
 
-async function persist($: $) {
+async function persist($: EngineInterface) {
   const id = await $.session.id()
   const items = await read($, list)
   const index = asStrings(await $.store.get(STORE_INDEX)).filter(s => s !== id)
@@ -111,32 +110,34 @@ async function persist($: $) {
   await $.store.set(STORE_INDEX, index)
 }
 
-async function syncMark($: $, requestId: string | undefined) {
+async function syncMark($: EngineInterface, requestId: string | undefined) {
   if (requestId === undefined) return
   const items = await read($, list)
   const isMarked = items.some(b => b.requestId === requestId)
   await update($, memberOf(marked, { requestId }), () => isMarked)
 }
 
-async function replaceList($: $, next: Bookmark[]) {
+async function replaceList($: EngineInterface, bookmarks: Bookmark[]) {
   const previous = await read($, list)
-  await update($, list, () => next)
-  const rows = new Set([...previous, ...next].map(b => b.requestId))
+  await update($, list, () => bookmarks)
+  const rows = new Set([...previous, ...bookmarks].map(b => b.requestId))
   for (const requestId of rows) await syncMark($, requestId)
 }
 
 // Loads this session's saved bookmarks once per session id: a hot reload
 // keeps the list, a resumed session gets its own back.
-async function ensureLoaded($: $) {
+async function ensureLoaded($: EngineInterface) {
   const id = await $.session.id()
   if ((await read($, loadedFor)) === id) return
   await replaceList($, asBookmarks(await $.store.get(STORE_PREFIX + id)))
   await update($, loadedFor, () => id)
 }
 
-const openPane = ($: $) => $.ui.open({ id: PANE, title: TITLE })
+function openPane($: EngineInterface) {
+  return $.ui.open({ id: PANE, title: TITLE })
+}
 
-async function addBookmark($: $, bookmark: NewBookmark) {
+async function addBookmark($: EngineInterface, bookmark: NewBookmark) {
   await ensureLoaded($)
   if ((await read($, list)).length >= MAX_BOOKMARKS) {
     $.ui.toast(`You have ${MAX_BOOKMARKS} bookmarks already: delete some first`)
@@ -156,19 +157,19 @@ async function addBookmark($: $, bookmark: NewBookmark) {
   $.ui.toast(`Bookmarked: ${added.title}`)
 }
 
-async function removeBookmark($: $, id: string) {
+async function removeBookmark($: EngineInterface, id: string) {
   const gone = (await read($, list)).find(b => b.id === id)
   await update($, list, items => items.filter(b => b.id !== id))
   await syncMark($, gone?.requestId)
   await persist($)
 }
 
-async function clearAll($: $) {
+async function clearAll($: EngineInterface) {
   await replaceList($, [])
   await persist($)
 }
 
-async function markMessage($: $, requestId: string, row: Row) {
+async function markMessage($: EngineInterface, requestId: string, row: Row) {
   await ensureLoaded($)
   const already = (await read($, list)).find(b => b.requestId === requestId && b.kind !== 'selection')
   if (already !== undefined) {
@@ -180,7 +181,7 @@ async function markMessage($: $, requestId: string, row: Row) {
 }
 
 // Answers with why nothing was bookmarked, or undefined once it was.
-async function bookmarkSelection($: $, label: string): Promise<string | undefined> {
+async function bookmarkSelection($: EngineInterface, label: string): Promise<string | undefined> {
   const selection = await $.ui.selection()
   if (selection === undefined || selection.text.trim() === '') {
     return 'Nothing is selected: select text in the transcript with the mouse first (fullscreen mode).'
@@ -198,14 +199,15 @@ async function bookmarkSelection($: $, label: string): Promise<string | undefine
   return undefined
 }
 
-async function jump($: $, bookmark: Bookmark, surface: RenderSurface) {
+async function jump($: EngineInterface, bookmark: Bookmark, surface: RenderSurface) {
   if (bookmark.requestId === undefined) {
     $.ui.toast('This bookmark spans several messages, so there is no single place to jump to')
     return
   }
-  const why = await $.ui
-    .scroll({ to: { requestId: bookmark.requestId }, block: 'start' })
-    .then(scrolled => scrolled.deny, (error: unknown) => String(error instanceof Error ? error.message : error))
+  const why = await $.ui.scroll({ to: { requestId: bookmark.requestId }, block: 'start' }).then(
+    scrolled => scrolled.deny,
+    (error: unknown) => String(error instanceof Error ? error.message : error),
+  )
   if (why === undefined) return
   const copied = await $.ui.copy({ text: bookmark.excerpt, surface })
   $.ui.toast(
@@ -218,7 +220,7 @@ async function jump($: $, bookmark: Bookmark, surface: RenderSurface) {
 // hover and stays as ★ once the row is bookmarked. The 📌 carries the row's
 // text, so nothing else needs to remember it.
 function markable(
-  $: $,
+  $: EngineInterface,
   ui: Pick<ElementTable, 'Box' | 'Button'>,
   requestId: string,
   drawing: RenderElement,

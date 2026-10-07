@@ -227,6 +227,28 @@ It doesn't read your files, your project, your other conversations, or any messa
 - The model never sees your bookmarks.
 - The only thing that leaves the plugin is a copy of a bookmark's text to **your own clipboard**, and only when **Go to** can't scroll to the message. A note on screen tells you when it happens.
 
+**Every hook and call it makes**
+
+| Hook | What it does |
+|---|---|
+| `session.start` | Adds the `/bookmarks` and `/bookmark` commands, loads this session's saved bookmarks, and opens the pane if there are any. |
+| `session.end` | After `/clear` or `/resume`, empties the list on screen. The old session's bookmarks stay saved. |
+| `prompt.submit` | Loads the current session's saved bookmarks if the session changed (after `/clear` or `/resume`). It doesn't read the prompt, and passes it on unchanged. |
+| `command.run` | Answers only its own two commands, `/bookmarks` and `/bookmark`. |
+| `ui.render` | Draws the Bookmarks pane, and adds the 📌 / ★ button to each message row while keeping Claude Code's own drawing of the row. |
+
+| Call | What it does |
+|---|---|
+| `$.ui.selection()` | Reads the text you last selected with the mouse, and which message it's in. Called only when you bookmark a selection. |
+| `$.session.id()` | Gets the current session's id, used only as the key your bookmarks are filed under in local storage. |
+| `$.store.get` / `set` / `delete` | Reads and writes the plugin's local storage on your machine. |
+| `$.state.get` / `set` | Keeps the list in memory for the session, so the pane redraws when it changes. |
+| `$.ui.open`, `toast`, `resolve`, `scroll`, `copy` | Opens the pane, shows short notes, draws, scrolls the transcript, and copies a bookmark's text to your clipboard. |
+| `$.clock.now()` | Reads the time shown on each bookmark. |
+| `$.command.register` | Adds the `/bookmarks` and `/bookmark` commands. |
+
+None of these sends anything off your machine.
+
 The source is all in [`hooks/register.tsx`](hooks/register.tsx), unminified, if you want to check.
 
 ---
