@@ -10,6 +10,9 @@
   "repository": "https://github.com/arcadeJHS/claude-code-mods",
   "license": "WTFPL",
   "icon": "./icon.png",
+  "documentationUrl": "https://github.com/arcadeJHS/claude-code-mods/blob/main/transcript-bookmarks/README.md",
+  "supportUrl": "https://github.com/arcadeJHS/claude-code-mods/issues",
+  "privacyPolicyUrl": "https://github.com/arcadeJHS/claude-code-mods/blob/main/transcript-bookmarks/README.md#privacy",
   "keywords": [
     "bookmarks",
     "transcript",
